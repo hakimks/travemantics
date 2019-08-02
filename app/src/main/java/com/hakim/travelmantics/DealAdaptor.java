@@ -93,14 +93,21 @@ public class DealAdaptor extends RecyclerView.Adapter<DealAdaptor.DealViewHolder
 
     public class DealViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle;
+        TextView tvDesciption;
+        TextView tvPrice;
 
         public DealViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTitle = (TextView) itemView.findViewById(R.id.tvTitle);
+            tvDesciption = (TextView) itemView.findViewById(R.id.tvDescription);
+            tvPrice = (TextView) itemView.findViewById(R.id.tvPrice);
+
         }
 
         public void bind(TravelDeal deal){
             tvTitle.setText(deal.getTitle());
+            tvDesciption.setText(deal.getDescription());
+            tvPrice.setText(deal.getPrice());
         }
     }
 }
