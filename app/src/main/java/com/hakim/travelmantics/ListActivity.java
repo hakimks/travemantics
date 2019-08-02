@@ -3,6 +3,8 @@ package com.hakim.travelmantics;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.widget.TextView;
@@ -26,40 +28,14 @@ public class ListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
 
-        FirebaseUtil.openFbReference("traveldeals");
+        RecyclerView rvDeals = (RecyclerView) findViewById(R.id.rvDeals);
+        final DealAdaptor adaptor = new DealAdaptor();
+        rvDeals.setAdapter(adaptor);
 
-        mFirebaseDatabase = FirebaseUtil.mFirebaseDatabase;
-        mDatabaseReference = FirebaseUtil.mDatabaseReference;
-        mChildEventListener = new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                TextView tvDeal = (TextView) findViewById(R.id.tvDeals);
-                TravelDeal td = dataSnapshot.getValue(TravelDeal.class);
+        LinearLayoutManager dealsLayoutManager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
+        rvDeals.setLayoutManager(dealsLayoutManager);
 
-                tvDeal.setText(tvDeal.getText() + "\n" + td.getTitle());
-            }
 
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        };
-        mDatabaseReference.addChildEventListener(mChildEventListener);
 
     }
 }
