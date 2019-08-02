@@ -14,6 +14,7 @@ public class TravelDeal {
         this.setDescription(description);
         this.setImageUrl(imageUrl);
     }
+    public TravelDeal(){}
 
     public String getId() {
         return id;
