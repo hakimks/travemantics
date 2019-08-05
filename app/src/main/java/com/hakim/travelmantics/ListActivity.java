@@ -17,10 +17,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.ArrayList;
 
 public class ListActivity extends AppCompatActivity {
-    ArrayList<TravelDeal> deals;
-    private FirebaseDatabase mFirebaseDatabase;
-    private DatabaseReference mDatabaseReference;
-    private ChildEventListener mChildEventListener;
+//    ArrayList<TravelDeal> deals;
+//    private FirebaseDatabase mFirebaseDatabase;
+//    private DatabaseReference mDatabaseReference;
+//    private ChildEventListener mChildEventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
