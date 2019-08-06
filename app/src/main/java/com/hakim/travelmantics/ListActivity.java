@@ -27,7 +27,7 @@ public class ListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
 
-        FirebaseUtil.openFbReference("traveldeals");
+        FirebaseUtil.openFbReference("traveldeals", this);
 
         RecyclerView rvDeals = (RecyclerView) findViewById(R.id.rvDeals);
         final DealAdaptor adaptor = new DealAdaptor();
@@ -55,5 +55,17 @@ public class ListActivity extends AppCompatActivity {
                 startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        FirebaseUtil.detachListener();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        FirebaseUtil.attachListener();
     }
 }
