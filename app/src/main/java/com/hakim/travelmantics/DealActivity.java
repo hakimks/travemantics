@@ -1,22 +1,33 @@
 package com.hakim.travelmantics;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.firebase.ui.auth.data.model.Resource;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 public class DealActivity extends AppCompatActivity {
     private FirebaseDatabase mFirebaseDatabase;
@@ -26,6 +37,7 @@ public class DealActivity extends AppCompatActivity {
     EditText txtPrice;
     EditText txtDesciption;
     TravelDeal deal;
+    ImageView imageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +51,7 @@ public class DealActivity extends AppCompatActivity {
         txtTitle = (EditText) findViewById(R.id.txtTitle);
         txtPrice = (EditText) findViewById(R.id.txtPrice);
         txtDesciption = (EditText) findViewById(R.id.txtDesciption);
+        imageView = (ImageView) findViewById(R.id.image);
 
         Intent intent = getIntent();
         TravelDeal deal = (TravelDeal) intent.getSerializableExtra("Deal");
@@ -50,6 +63,7 @@ public class DealActivity extends AppCompatActivity {
         txtTitle.setText(deal.getTitle());
         txtDesciption.setText(deal.getDescription());
         txtPrice.setText(deal.getPrice());
+        showImage(deal.getImageUrl());
 
         Button btnImage = findViewById(R.id.btnImage);
         btnImage.setOnClickListener(new View.OnClickListener() {
@@ -105,8 +119,50 @@ public class DealActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICTURE_RESULT && resultCode == RESULT_OK){
             Uri imageuri = data.getData();
-            StorageReference ref = FirebaseUtil.mStorageRef.child(imageuri.getLastPathSegment());
-            ref.putFile(imageuri);
+            final StorageReference ref = FirebaseUtil.mStorageRef.child(imageuri.getLastPathSegment());
+
+            UploadTask uploadTask = ref.putFile(imageuri);
+
+            Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                @Override
+                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                    if (!task.isSuccessful()) {
+                        throw task.getException();
+                    }
+
+                    // Continue with the task to get the download URL
+                    return ref.getDownloadUrl();
+                }
+            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+                @Override
+                public void onComplete(@NonNull Task<Uri> task) {
+                    if (task.isSuccessful()) {
+                        Uri downloadUri = task.getResult();
+                        System.out.println("Upload " + downloadUri);
+//                        Toast.makeText(mActivity, "Successfully uploaded", Toast.LENGTH_SHORT).show();
+                        if (downloadUri != null) {
+
+                            String photoStringLink = downloadUri.toString(); //YOU WILL GET THE DOWNLOAD URL HERE !!!!
+                            System.out.println("Upload " + photoStringLink);
+                            deal.setImageUrl(photoStringLink);
+                            showImage(photoStringLink);
+                        }
+
+                    } else {
+                        // Handle failures
+                        // ...
+                    }
+                }
+            });
+
+
+//            ref.putFile(imageuri).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
+//                @Override
+//                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+//                    String url = taskSnapshot.getStorage().getDownloadUrl().toString();
+//                    deal.setImageUrl(url);
+//                }
+//            });
         }
     }
 
@@ -147,6 +203,17 @@ public class DealActivity extends AppCompatActivity {
         txtTitle.setEnabled(isEnabled);
         txtPrice.setEnabled(isEnabled);
         txtDesciption.setEnabled(isEnabled);
+    }
+
+    private void showImage(String url){
+        if (url != null && url.isEmpty() == false){
+            int width  = Resources.getSystem().getDisplayMetrics().widthPixels;
+            Picasso.get().load(url)
+                    .resize(width, width*2/3)
+                    .centerCrop()
+                    .into(imageView);
+
+        }
     }
 
 }
