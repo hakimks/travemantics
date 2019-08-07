@@ -106,7 +106,7 @@ public class DealAdaptor extends RecyclerView.Adapter<DealAdaptor.DealViewHolder
             tvTitle = (TextView) itemView.findViewById(R.id.tvTitle);
             tvDesciption = (TextView) itemView.findViewById(R.id.tvDescription);
             tvPrice = (TextView) itemView.findViewById(R.id.tvPrice);
-            imageDeal = (ImageView) itemView.findViewById(R.id.image);
+            imageDeal = (ImageView) itemView.findViewById(R.id.imageDeal);
             itemView.setOnClickListener(this);
 
         }

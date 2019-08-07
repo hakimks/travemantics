@@ -9,6 +9,7 @@ import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -21,6 +22,7 @@ import android.widget.Toast;
 import com.firebase.ui.auth.data.model.Resource;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseReference;
@@ -51,7 +53,7 @@ public class DealActivity extends AppCompatActivity {
         txtTitle = (EditText) findViewById(R.id.txtTitle);
         txtPrice = (EditText) findViewById(R.id.txtPrice);
         txtDesciption = (EditText) findViewById(R.id.txtDesciption);
-        imageView = (ImageView) findViewById(R.id.image);
+        imageView = (ImageView) findViewById(R.id.imageView);
 
         Intent intent = getIntent();
         TravelDeal deal = (TravelDeal) intent.getSerializableExtra("Deal");
@@ -121,48 +123,54 @@ public class DealActivity extends AppCompatActivity {
             Uri imageuri = data.getData();
             final StorageReference ref = FirebaseUtil.mStorageRef.child(imageuri.getLastPathSegment());
 
-            UploadTask uploadTask = ref.putFile(imageuri);
-
-            Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                @Override
-                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-                    if (!task.isSuccessful()) {
-                        throw task.getException();
-                    }
-
-                    // Continue with the task to get the download URL
-                    return ref.getDownloadUrl();
-                }
-            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
-                @Override
-                public void onComplete(@NonNull Task<Uri> task) {
-                    if (task.isSuccessful()) {
-                        Uri downloadUri = task.getResult();
-                        System.out.println("Upload " + downloadUri);
-//                        Toast.makeText(mActivity, "Successfully uploaded", Toast.LENGTH_SHORT).show();
-                        if (downloadUri != null) {
-
-                            String photoStringLink = downloadUri.toString(); //YOU WILL GET THE DOWNLOAD URL HERE !!!!
-                            System.out.println("Upload " + photoStringLink);
-                            deal.setImageUrl(photoStringLink);
-                            showImage(photoStringLink);
-                        }
-
-                    } else {
-                        // Handle failures
-                        // ...
-                    }
-                }
-            });
-
-
-//            ref.putFile(imageuri).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
+//            UploadTask uploadTask = ref.putFile(imageuri);
+//
+//            Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
 //                @Override
-//                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                    String url = taskSnapshot.getStorage().getDownloadUrl().toString();
-//                    deal.setImageUrl(url);
+//                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+//                    if (!task.isSuccessful()) {
+//                        throw task.getException();
+//                    }
+//
+//                    // Continue with the task to get the download URL
+//                    return ref.getDownloadUrl();
+//                }
+//            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+//                @Override
+//                public void onComplete(@NonNull Task<Uri> task) {
+//                    if (task.isSuccessful()) {
+//                        Uri downloadUri = task.getResult();
+//                        System.out.println("Upload " + downloadUri);
+////                        Toast.makeText(mActivity, "Successfully uploaded", Toast.LENGTH_SHORT).show();
+//                        if (downloadUri != null) {
+//
+//                            String photoStringLink = downloadUri.toString(); //YOU WILL GET THE DOWNLOAD URL HERE !!!!
+//                            System.out.println("Upload " + photoStringLink);
+//                            deal.setImageUrl(photoStringLink);
+//                            String pictureName = task.getResult().getPath();
+//                            showImage(photoStringLink);
+//                        }
+//
+//                    } else {
+//                        // Handle failures
+//                        // ...
+//                    }
 //                }
 //            });
+
+
+            ref.putFile(imageuri).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    String url = taskSnapshot.getMetadata().getReference().getDownloadUrl().toString();
+                    String pictureName = taskSnapshot.getMetadata().getReference().getPath();
+                    deal.setImageUrl(url);
+                    deal.setImageName(pictureName);
+                    Log.d("Url", url);
+                    Log.d("name", pictureName);
+                    showImage(url);
+                }
+            });
         }
     }
 
@@ -192,6 +200,20 @@ public class DealActivity extends AppCompatActivity {
             Toast.makeText(this, "Please save the deal before deleting", Toast.LENGTH_SHORT).show();
         }
         mDatabaseReference.child(deal.getId()).removeValue();
+
+        StorageReference picRef = FirebaseUtil.mStorage.getReference().child(deal.getImageName());
+        picRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d("Delete Image", "Image sucessfuly deleted");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d("Delete Image", e.getMessage());
+
+            }
+        });
     }
 
     private void backToList(){
