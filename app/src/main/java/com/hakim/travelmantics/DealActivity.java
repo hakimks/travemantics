@@ -88,10 +88,12 @@ public class DealActivity extends AppCompatActivity {
             menu.findItem(R.id.save_menu).setVisible(true);
             menu.findItem(R.id.delete_menu).setVisible(true);
             enableEdittext(true);
+            menu.findItem(R.id.btnImage).setVisible(true);
         } else {
             menu.findItem(R.id.save_menu).setVisible(false);
             menu.findItem(R.id.delete_menu).setVisible(false);
             enableEdittext(false);
+            menu.findItem(R.id.btnImage).setVisible(false);
         }
         return true;
     }
